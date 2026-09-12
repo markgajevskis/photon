@@ -102,13 +102,32 @@ void setup() {
   network = new PhotonNetworkLayer(&bus, &packetizer, &addressFilter, &feederFloor);
   protocol = new PhotonFeederProtocol(feeder, &feederFloor, network, UniqueID, UniqueIDsize);
 
+  /*
+   * This is temporal hack to program the feeder blade eeproms with address.
+   * do not use for production FW
+   */
+  //delay(1000);
+
+  //feederFloor.write_floor_address(1);
+
+  //delay(1000);
+
   byte addr = feederFloor.read_floor_address();
 
   if(addr == 0xFF){ // not detected, turn red
     feeder->set_rgb(true, false, false);
   }
-  else if (addr == 0x00){ //not programmed, turn blue
+  else if (addr == 0x00){ // not programmed, turn blue
     feeder->set_rgb(false, false, true);
+  }
+  else { // blink address
+    for (uint i = 0; i < addr; i++) {
+      feeder->set_rgb(false, false, false);
+      delay(200);
+      feeder->set_rgb(false, true, false);
+      delay(200);
+    }
+    feeder->set_rgb(false, true, false);
   }
 
   //Starting rs-485 serial
